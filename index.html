@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StayNest - Find Your Perfect Stay</title>
+  <meta name="description" content="Discover unique accommodations and experiences around the world">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Circular:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#FF385C',
+            'primary-dark': '#E31C5F',
+            secondary: '#00A699',
+            surface: '#F7F7F7',
+            'text-primary': '#222222',
+            'text-secondary': '#717171',
+            'text-tertiary': '#B0B0B0',
+            border: '#DDDDDD',
+            success: '#008A05',
+          },
+          fontFamily: {
+            sans: ['Circular', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Circular', sans-serif; color: #222; line-height: 1.5; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+    .animate-slide-up { animation: slideUp 0.4s ease-out; }
+    .animate-scale-in { animation: scaleIn 0.2s ease-out; }
+    .animate-pulse { animation: pulse 2s ease-in-out infinite; }
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  </style>
+</head>
+<body class="bg-white">
+  <div id="app"></div>
+
+  <script>
+    // Data
+    const listings = [
+      { id: '1', title: 'Modern Downtown Loft with City Views', location: { city: 'New York', country: 'United States' }, images: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop'], price: 285, rating: 4.92, reviewCount: 127, rooms: 2, beds: 1, baths: 1, host: { name: 'Sarah Mitchell', isSuperhost: true }, amenities: ['WiFi', 'Kitchen', 'Air conditioning', 'Washer'] },
+      { id: '2', title: 'Cozy Beachfront Bungalow with Ocean Views', location: { city: 'Malibu', country: 'United States' }, images: ['https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800&h=600&fit=crop'], price: 450, rating: 4.88, reviewCount: 89, rooms: 3, beds: 2, baths: 2, host: { name: 'Marco Rodriguez', isSuperhost: true }, amenities: ['Beach access', 'Ocean view', 'Kitchen', 'Parking'] },
+      { id: '3', title: 'Stylish Studio in Historic District', location: { city: 'New Orleans', country: 'United States' }, images: ['https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=800&h=600&fit=crop'], price: 125, rating: 4.95, reviewCount: 203, rooms: 1, beds: 1, baths: 1, host: { name: 'Emma Thompson', isSuperhost: false }, amenities: ['WiFi', 'Kitchen', 'Air conditioning', 'TV'] },
+      { id: '4', title: 'Mountain Retreat with Hot Tub & Sauna', location: { city: 'Aspen', country: 'United States' }, images: ['https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800&h=600&fit=crop'], price: 650, rating: 4.97, reviewCount: 56, rooms: 4, beds: 3, baths: 3, host: { name: 'James Wilson', isSuperhost: true }, amenities: ['Hot tub', 'Sauna', 'Fireplace', 'WiFi'] },
+      { id: '5', title: 'Minimalist Japanese-Style Garden Suite', location: { city: 'San Francisco', country: 'United States' }, images: ['https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&h=600&fit=crop'], price: 195, rating: 4.89, reviewCount: 142, rooms: 1, beds: 1, baths: 1, host: { name: 'Yuki Tanaka', isSuperhost: true }, amenities: ['Garden view', 'WiFi', 'Kitchen', 'Air conditioning'] },
+      { id: '6', title: 'Luxury Penthouse with Rooftop Terrace', location: { city: 'Miami', country: 'United States' }, images: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop'], price: 890, rating: 4.94, reviewCount: 78, rooms: 3, beds: 2, baths: 2, host: { name: 'Sarah Mitchell', isSuperhost: true }, amenities: ['Rooftop terrace', 'Pool', 'Concierge', 'WiFi'] },
+      { id: '7', title: 'Charming Cottage in Vineyard', location: { city: 'Napa Valley', country: 'United States' }, images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop'], price: 320, rating: 4.91, reviewCount: 167, rooms: 2, beds: 1, baths: 1, host: { name: 'Marco Rodriguez', isSuperhost: true }, amenities: ['Vineyard view', 'Wine cellar', 'Garden', 'WiFi'] },
+      { id: '8', title: 'Industrial-Chic Loft with Art Studio', location: { city: 'Los Angeles', country: 'United States' }, images: ['https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=800&h=600&fit=crop'], price: 175, rating: 4.86, reviewCount: 94, rooms: 2, beds: 2, baths: 1, host: { name: 'Emma Thompson', isSuperhost: false }, amenities: ['Art studio', 'WiFi', 'Kitchen', 'High ceilings'] },
+    ];
+
+    const categories = [
+      { id: 'beach', name: 'Beach', icon: '🏖️', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop' },
+      { id: 'mountain', name: 'Mountain', icon: '⛰️', image: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=400&h=300&fit=crop' },
+      { id: 'city', name: 'City', icon: '🏙️', image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=300&fit=crop' },
+      { id: 'countryside', name: 'Countryside', icon: '🌄', image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400&h=300&fit=crop' },
+      { id: 'lake', name: 'Lake', icon: '🏞️', image: 'https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=400&h=300&fit=crop' },
+      { id: 'ski', name: 'Ski', icon: '⛷️', image: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=300&fit=crop' },
+      { id: 'tropical', name: 'Tropical', icon: '🌴', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop' },
+      { id: 'historic', name: 'Historic', icon: '🏛️', image: 'https://images.unsplash.com/photo-1470075801209-17f9ec0cada6?w=400&h=300&fit=crop' },
+    ];
+
+    // State
+    let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    let currentPage = 'home';
+    let selectedListing = null;
+
+    // Utils
+    const formatPrice = (price) => `$${price}`;
+    const cn = (...classes) => classes.filter(Boolean).join(' ');
+
+    // Toggle favorite
+    const toggleFavorite = (id) => {
+      if (favorites.includes(id)) {
+        favorites = favorites.filter(f => f !== id);
+      } else {
+        favorites = [...favorites, id];
+      }
+      localStorage.setItem('favorites', JSON.stringify(favorites));
+      render();
+    };
+
+    // Render listing card
+    const renderListingCard = (listing) => {
+      const isFav = favorites.includes(listing.id);
+      return `
+        <div class="group cursor-pointer" onclick="openListing('${listing.id}')">
+          <div class="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 mb-3">
+            <img src="${listing.images[0]}" alt="${listing.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <button onclick="event.stopPropagation(); toggleFavorite('${listing.id}')" class="absolute top-3 right-3 p-2 bg-white/90 rounded-full hover:bg-white transition-all">
+              <svg class="w-5 h-5 ${isFav ? 'fill-primary text-primary' : 'text-gray-800'}" viewBox="0 0 24 24" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="space-y-1">
+            <div class="flex justify-between">
+              <span class="text-sm font-medium">${listing.location.city}, ${listing.location.country}</span>
+              <span class="text-sm flex items-center gap-1">
+                <svg class="w-4 h-4 fill-primary text-primary" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                ${listing.rating.toFixed(2)}
+              </span>
+            </div>
+            <h3 class="font-medium text-gray-800 truncate">${listing.title}</h3>
+            <p class="text-sm text-gray-500">${listing.rooms} bed${listing.rooms > 1 ? 's' : ''} - ${listing.beds} bed${listing.beds > 1 ? 's' : ''} - ${listing.baths} bath${listing.baths > 1 ? 's' : ''}</p>
+            <p class="font-semibold"><span class="text-lg">${formatPrice(listing.price)}</span> <span class="text-gray-500 font-normal">/ night</span></p>
+          </div>
+        </div>
+      `;
+    };
+
+    // Render category card
+    const renderCategoryCard = (cat) => `
+      <a href="#" onclick="event.preventDefault(); searchCategory('${cat.id}')" class="flex-none w-[140px] md:w-[160px]">
+        <div class="relative w-full aspect-square rounded-2xl overflow-hidden bg-gray-100">
+          <img src="${cat.image}" alt="${cat.name}" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          <div class="absolute inset-0 flex flex-col items-center justify-center text-white">
+            <span class="text-3xl mb-1">${cat.icon}</span>
+            <span class="font-semibold">${cat.name}</span>
+          </div>
+        </div>
+      </a>
+    `;
+
+    // Header
+    const renderHeader = () => `
+      <header class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex items-center justify-between h-16">
+            <a href="#" onclick="event.preventDefault(); goHome()" class="flex items-center gap-2">
+              <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              </div>
+              <span class="text-xl font-bold text-text-primary hidden sm:block">Stay<span class="text-primary">Nest</span></span>
+            </a>
+            <nav class="hidden md:flex items-center gap-1">
+              <a href="#" onclick="event.preventDefault(); goHome()" class="px-4 py-2 rounded-full text-sm font-medium ${currentPage === 'home' ? 'bg-gray-100 text-gray-800' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'}">Home</a>
+              <a href="#" onclick="event.preventDefault(); showSearch()" class="px-4 py-2 rounded-full text-sm font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50">Explore</a>
+            </nav>
+            <div class="flex items-center gap-2">
+              <a href="#" class="hidden sm:block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full">Become a Host</a>
+              <button class="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-full hover:shadow-md transition-all">
+                <svg class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                  <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+      <div class="h-16"></div>
+    `;
+
+    // Hero
+    const renderHero = () => `
+      <section class="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 z-0">
+          <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920&h=1080&fit=crop" alt="Luxury home" class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/40"></div>
+        </div>
+        <div class="relative z-10 w-full max-w-5xl mx-auto px-4 text-center">
+          <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full mb-6 animate-fade-in">
+            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            <span class="text-sm font-medium">Over 1 million stays available worldwide</span>
+          </div>
+          <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 animate-slide-up">
+            Find Your Perfect
+            <span class="block text-primary">Getaway</span>
+          </h1>
+          <p class="text-xl text-white/90 mb-8 max-w-2xl mx-auto animate-slide-up" style="animation-delay: 100ms">
+            Discover unique stays and experiences in destinations around the world
+          </p>
+          <div class="animate-slide-up" style="animation-delay: 200ms">
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden max-w-3xl mx-auto">
+              <div class="flex items-center">
+                <div class="flex-1 px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer border-r border-gray-200">
+                  <label class="block text-xs font-semibold text-gray-800 mb-1">Where</label>
+                  <input type="text" placeholder="Search destinations" id="searchInput" class="w-full bg-transparent outline-none text-gray-500 placeholder:text-gray-400">
+                </div>
+                <div class="flex-1 px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer border-r border-gray-200">
+                  <label class="block text-xs font-semibold text-gray-800 mb-1">Check in</label>
+                  <span class="text-sm text-gray-400">Add dates</span>
+                </div>
+                <div class="flex-1 px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer border-r border-gray-200">
+                  <label class="block text-xs font-semibold text-gray-800 mb-1">Check out</label>
+                  <span class="text-sm text-gray-400">Add dates</span>
+                </div>
+                <div class="flex-1 px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer">
+                  <label class="block text-xs font-semibold text-gray-800 mb-1">Who</label>
+                  <span class="text-sm text-gray-400">Add guests</span>
+                </div>
+                <button onclick="performSearch()" class="m-2 px-6 py-3 bg-primary text-white rounded-xl font-medium hover:bg-primary-dark transition-colors flex items-center gap-2">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                  <span>Search</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-wrap justify-center gap-8 mt-12 animate-fade-in" style="animation-delay: 400ms">
+            <div class="text-center"><p class="text-3xl font-bold text-white">4.9</p><p class="text-sm text-white/70">Average Rating</p></div>
+            <div class="text-center"><p class="text-3xl font-bold text-white">100K+</p><p class="text-sm text-white/70">Happy Guests</p></div>
+            <div class="text-center"><p class="text-3xl font-bold text-white">50+</p><p class="text-sm text-white/70">Destinations</p></div>
+          </div>
+        </div>
+      </section>
+    `;
+
+    // Categories
+    const renderCategories = () => `
+      <section class="py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Browse by Category</h2>
+              <p class="text-gray-500">Explore unique stays for every type of traveler</p>
+            </div>
+          </div>
+          <div class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+            ${categories.map(cat => renderCategoryCard(cat)).join('')}
+          </div>
+        </div>
+      </section>
+    `;
+
+    // Listings grid
+    const renderListings = () => `
+      <section class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="mb-8">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Explore Our Stays</h2>
+            <p class="text-gray-500">Find the perfect place for your next adventure</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            ${listings.map(listing => renderListingCard(listing)).join('')}
+          </div>
+        </div>
+      </section>
+    `;
+
+    // CTA
+    const renderCTA = () => `
+      <section class="py-20 bg-primary">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+          <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Become a Host?</h2>
+          <p class="text-xl text-white/90 mb-8">Join thousands of hosts earning extra income by sharing their space</p>
+          <button class="px-8 py-4 bg-white text-primary font-semibold rounded-xl hover:bg-gray-100 transition-colors">Start Hosting</button>
+        </div>
+      </section>
+    `;
+
+    // Footer
+    const renderFooter = () => `
+      <footer class="bg-gray-100 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <a href="#" onclick="event.preventDefault(); goHome()" class="flex items-center gap-2 mb-4">
+                <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                  <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                </div>
+                <span class="text-xl font-bold">Stay<span class="text-primary">Nest</span></span>
+              </a>
+              <p class="text-sm text-gray-500 mb-4">Discover unique places to stay and experiences around the world.</p>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-800 mb-4">Support</h3>
+              <ul class="space-y-2 text-sm text-gray-500">
+                <li><a href="#" class="hover:text-gray-800">Help Center</a></li>
+                <li><a href="#" class="hover:text-gray-800">Safety information</a></li>
+                <li><a href="#" class="hover:text-gray-800">Cancellation options</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-800 mb-4">Hosting</h3>
+              <ul class="space-y-2 text-sm text-gray-500">
+                <li><a href="#" class="hover:text-gray-800">Become a Host</a></li>
+                <li><a href="#" class="hover:text-gray-800">Host resources</a></li>
+                <li><a href="#" class="hover:text-gray-800">Community forum</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-800 mb-4">StayNest</h3>
+              <ul class="space-y-2 text-sm text-gray-500">
+                <li><a href="#" class="hover:text-gray-800">Newsroom</a></li>
+                <li><a href="#" class="hover:text-gray-800">Careers</a></li>
+                <li><a href="#" class="hover:text-gray-800">Investors</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="pt-8 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p class="text-sm text-gray-500">© ${new Date().getFullYear()} StayNest, Inc. All rights reserved.</p>
+            <div class="flex items-center gap-6">
+              <button class="text-sm text-gray-500 hover:text-gray-800">English (US)</button>
+              <button class="text-sm text-gray-500 hover:text-gray-800">$ USD</button>
+            </div>
+          </div>
+        </div>
+      </footer>
+    `;
+
+    // Listing detail
+    const renderListingDetail = () => {
+      if (!selectedListing) return '';
+      const l = selectedListing;
+      return `
+        <div class="min-h-screen bg-white">
+          ${renderHeader()}
+          <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <button onclick="goHome()" class="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-800">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+              Back to listings
+            </button>
+            
+            <!-- Image Gallery -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 rounded-2xl overflow-hidden mb-8">
+              <div class="col-span-2 row-span-2 relative aspect-square">
+                <img src="${l.images[0]}" alt="${l.title}" class="w-full h-full object-cover">
+              </div>
+              ${l.images.slice(1, 5).map((img, i) => `<div class="hidden md:block relative aspect-square"><img src="${img}" alt="Image ${i+2}" class="w-full h-full object-cover"></div>`).join('')}
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+              <!-- Left Column -->
+              <div class="lg:col-span-2">
+                <div class="border-b border-gray-200 pb-6">
+                  <div class="flex items-start justify-between mb-4">
+                    <div>
+                      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">${l.title}</h1>
+                      <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                        <span class="flex items-center gap-1">
+                          <svg class="w-4 h-4 fill-primary text-primary" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                          ${l.rating.toFixed(2)} · ${l.reviewCount} reviews
+                        </span>
+                        <span>${l.location.city}, ${l.location.country}</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button onclick="navigator.clipboard.writeText(window.location.href)" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                        <span class="text-sm font-medium">Share</span>
+                      </button>
+                      <button onclick="toggleFavorite('${l.id}')" class="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${favorites.includes(l.id) ? 'text-primary' : 'hover:bg-gray-100'}">
+                        <svg class="w-4 h-4 ${favorites.includes(l.id) ? 'fill-current' : ''}" fill="${favorites.includes(l.id) ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                        <span class="text-sm font-medium">Save</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Host -->
+                <div class="border-b border-gray-200 py-6">
+                  <div class="flex items-center gap-4">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" alt="${l.host.name}" class="w-14 h-14 rounded-full object-cover">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2">
+                        <h3 class="font-semibold text-gray-800">Hosted by ${l.host.name}</h3>
+                        ${l.host.isSuperhost ? '<span class="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full">Superhost</span>' : ''}
+                      </div>
+                      <p class="text-sm text-gray-500">${l.rooms} bedroom · ${l.beds} beds · ${l.baths} bath</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Amenities -->
+                <div class="border-b border-gray-200 py-6">
+                  <h2 class="text-xl font-semibold text-gray-800 mb-4">What this place offers</h2>
+                  <div class="grid grid-cols-2 gap-4">
+                    ${l.amenities.map(a => `<div class="flex items-center gap-3 text-gray-600"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>${a}</div>`).join('')}
+                  </div>
+                </div>
+                
+                <!-- Reviews -->
+                <div class="py-6">
+                  <div class="flex items-center gap-2 mb-6">
+                    <svg class="w-5 h-5 fill-primary text-primary" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <h2 class="text-xl font-semibold text-gray-800">${l.rating.toFixed(2)} · ${l.reviewCount} reviews</h2>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-4 bg-gray-50 rounded-xl">
+                      <div class="flex items-center gap-3 mb-3">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop" alt="User" class="w-10 h-10 rounded-full object-cover">
+                        <div>
+                          <h4 class="font-medium text-gray-800">Michael Chen</h4>
+                          <p class="text-sm text-gray-500">December 2024</p>
+                        </div>
+                      </div>
+                      <p class="text-sm text-gray-600">Absolutely stunning apartment! The views are even better than the photos. Sarah was an exceptional host.</p>
+                    </div>
+                    <div class="p-4 bg-gray-50 rounded-xl">
+                      <div class="flex items-center gap-3 mb-3">
+                        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop" alt="User" class="w-10 h-10 rounded-full object-cover">
+                        <div>
+                          <h4 class="font-medium text-gray-800">Jessica Parker</h4>
+                          <p class="text-sm text-gray-500">November 2024</p>
+                        </div>
+                      </div>
+                      <p class="text-sm text-gray-600">Perfect location and the apartment was exactly as described. Clean, modern, and had everything we needed.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Booking Widget -->
+              <div class="lg:col-span-1">
+                <div class="sticky top-24 bg-white border border-gray-200 rounded-2xl shadow-xl p-6">
+                  <div class="flex items-baseline gap-2 mb-6">
+                    <span class="text-2xl font-bold text-gray-800">${formatPrice(l.price)}</span>
+                    <span class="text-gray-500">/ night</span>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 border border-gray-200 rounded-lg overflow-hidden mb-4">
+                    <div class="p-3">
+                      <label class="block text-xs font-semibold text-gray-800">CHECK-IN</label>
+                      <input type="date" class="w-full bg-transparent text-sm outline-none">
+                    </div>
+                    <div class="p-3 border-l border-gray-200">
+                      <label class="block text-xs font-semibold text-gray-800">CHECKOUT</label>
+                      <input type="date" class="w-full bg-transparent text-sm outline-none">
+                    </div>
+                  </div>
+                  
+                  <div class="border border-gray-200 rounded-lg p-4 mb-6">
+                    <label class="block text-xs font-semibold text-gray-800">GUESTS</label>
+                    <div class="flex items-center justify-between mt-2">
+                      <span class="text-sm text-gray-500">1 guest</span>
+                      <div class="flex items-center gap-3">
+                        <button class="w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-100">-</button>
+                        <span class="font-medium">1</span>
+                        <button class="w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-100">+</button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button class="w-full py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors">
+                    Reserve
+                  </button>
+                  
+                  <p class="text-center text-sm text-gray-500 mt-4">You won't be charged yet</p>
+                  
+                  <div class="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200">
+                    <svg class="w-4 h-4 fill-primary text-primary" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <span class="text-sm font-medium">${l.rating.toFixed(2)}</span>
+                    <span class="text-sm text-gray-500">· ${l.reviewCount} reviews</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+          ${renderFooter()}
+        </div>
+      `;
+    };
+
+    // Search page
+    const renderSearch = () => `
+      <div class="min-h-screen bg-white">
+        ${renderHeader()}
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <h1 class="text-2xl font-bold text-gray-800 mb-2">Explore Stays</h1>
+          <p class="text-gray-500 mb-8">${listings.length} places to stay</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            ${listings.map(listing => renderListingCard(listing)).join('')}
+          </div>
+        </main>
+        ${renderFooter()}
+      </div>
+    `;
+
+    // Main render
+    const render = () => {
+      const app = document.getElementById('app');
+      let html = '';
+      
+      if (currentPage === 'listing' && selectedListing) {
+        html = renderListingDetail();
+      } else if (currentPage === 'search') {
+        html = renderSearch();
+      } else {
+        html = renderHeader() + renderHero() + renderCategories() + renderListings() + renderCTA() + renderFooter();
+      }
+      
+      app.innerHTML = html;
+    };
+
+    // Navigation functions
+    const goHome = () => {
+      currentPage = 'home';
+      selectedListing = null;
+      render();
+      window.scrollTo(0, 0);
+    };
+
+    const showSearch = () => {
+      currentPage = 'search';
+      render();
+      window.scrollTo(0, 0);
+    };
+
+    const openListing = (id) => {
+      selectedListing = listings.find(l => l.id === id);
+      currentPage = 'listing';
+      render();
+      window.scrollTo(0, 0);
+    };
+
+    const searchCategory = (catId) => {
+      showSearch();
+    };
+
+    const performSearch = () => {
+      const input = document.getElementById('searchInput');
+      if (input && input.value.trim()) {
+        showSearch();
+      }
+    };
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>
