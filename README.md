@@ -1,5 +1,8 @@
 # StayNest - Airbnb Clone Application
 
+> **Created by Antono**
+
+
 A modern, responsive vacation rental platform clone inspired by Airbnb, built with Next.js 14 and Tailwind CSS.
 
 ![StayNest Preview](https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&h=600&fit=crop)
